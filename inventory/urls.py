@@ -8,6 +8,8 @@ urlpatterns = [
     path("delete/<int:pk>/", views.delete_food, name="delete_food"),
     path("donated/<int:pk>/", views.mark_as_donated, name="mark_as_donated"),
     path("consumed/<int:pk>/", views.mark_as_consumed, name="mark_as_consumed"),
+    path("donation-cancel/<int:pk>/", views.cancel_donation, name="cancel_donation"),
+    path("donations/", views.donation_history, name="donation_history"),
 
     path("signup/", views.signup, name="signup"),
 ]

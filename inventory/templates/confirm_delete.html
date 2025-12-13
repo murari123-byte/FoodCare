@@ -2,12 +2,28 @@
 {% block title %}Delete Food Item | FoodCare{% endblock %}
 
 {% block content %}
-<h2>Delete Food Item</h2>
-<p>Are you sure you want to delete <strong>{{ item.name }}</strong> ({{ item.quantity }})?</p>
 
-<form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Yes, delete</button>
-    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
-</form>
+<div class="delete-page">
+
+    <h2 class="delete-title">Delete Food Item</h2>
+
+    <p class="delete-warning">
+        Are you sure you want to delete
+        <strong>{{ item.name }}</strong> ({{ item.quantity }})?
+    </p>
+
+    <form method="post" class="delete-form">
+        {% csrf_token %}
+
+        <button type="submit" class="btn-delete">
+            Yes, delete
+        </button>
+
+        <a href="{% url 'dashboard' %}" class="btn-cancel">
+            Cancel
+        </a>
+    </form>
+
+</div>
+
 {% endblock %}

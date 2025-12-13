@@ -2,12 +2,27 @@
 {% block title %}Add Food Item | FoodCare{% endblock %}
 
 {% block content %}
-<h2>Add Food Item</h2>
 
-<form method="post" class="mt-3">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
-</form>
+<section class="page-section">
+    <h2 class="page-title">Add Food Item</h2>
+
+    <form method="post" class="food-form">
+        {% csrf_token %}
+
+        <div class="form-fields">
+            {{ form.as_p }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">
+                Save
+            </button>
+
+            <a href="{% url 'dashboard' %}" class="btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</section>
+
 {% endblock %}

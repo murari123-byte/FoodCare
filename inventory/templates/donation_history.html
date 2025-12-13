@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Donation History{% endblock %}
+
+{% block content %}
+<h2>Donation History</h2>
+
+<table class="food-table">
+    <thead>
+        <tr>
+            <th>Food</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Added Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in donated_items %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.get_status_display }}</td>
+            <td>{{ item.added_date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" class="empty-state">No donations yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'dashboard' %}" class="secondary-btn">
+    Back to Dashboard
+</a>
+{% endblock %}

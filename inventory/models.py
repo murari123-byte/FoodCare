@@ -12,6 +12,7 @@ class FoodItem(models.Model):
         ("FRESH", "Fresh"),
         ("EXPIRING", "Expiring Soon"),
         ("EXPIRED", "Expired"),
+        ("DONATE", "Marked for Donation"),
         ("DONATED", "Donated"),
         ("DONATION_CANCELLED", "Donation Cancelled"),
         ("CONSUMED", "Consumed"),
@@ -49,7 +50,7 @@ class FoodItem(models.Model):
     )
 
     status = models.CharField(
-        max_length=25,
+        max_length=30,
         choices=STATUS_CHOICES,
         default="FRESH",
     )

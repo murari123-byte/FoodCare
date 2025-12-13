@@ -11,22 +11,25 @@ from .models import FoodItem
 @login_required
 def dashboard(request):
     """
-    Main page for the user.
-    Shows all items, plus items expiring soon and already expired.
+    Main dashboard page.
+    Shows all food items and highlights expiring / expired items.
     """
     today = date.today()
-    # All items for this logged-in user
+
+    # All items for the logged-in user
     items = FoodItem.objects.filter(user=request.user).order_by("expiry_date")
-    # Items expiring in next 3 days
+
+    # Items expiring in next 3 days (excluding donated/consumed)
     expiring_soon = items.filter(
         expiry_date__lte=today + timedelta(days=3),
         expiry_date__gte=today,
-        status__in=["FRESH", "EXPIRING"],
+        status__in=["FRESH", "EXPIRING", "DONATION_CANCELLED"],
     )
-    # Items already expired
+
+    # Already expired items
     expired = items.filter(
         expiry_date__lt=today,
-        status__in=["FRESH", "EXPIRING"],
+        status__in=["FRESH", "EXPIRING", "DONATION_CANCELLED"],
     )
 
     context = {
@@ -36,6 +39,7 @@ def dashboard(request):
         "today": today,
     }
     return render(request, "dashboard.html", context)
+
 
 @login_required
 def add_food_item(request):
@@ -55,6 +59,7 @@ def add_food_item(request):
 
     return render(request, "add_food_item.html", {"form": form})
 
+
 @login_required
 def edit_food(request, pk):
     """
@@ -73,6 +78,7 @@ def edit_food(request, pk):
 
     return render(request, "edit_food.html", {"form": form, "item": item})
 
+
 @login_required
 def delete_food(request, pk):
     """
@@ -87,16 +93,40 @@ def delete_food(request, pk):
 
     return render(request, "confirm_delete.html", {"item": item})
 
+
 @login_required
 def mark_as_donated(request, pk):
     """
     Mark a food item as donated.
     """
     item = get_object_or_404(FoodItem, pk=pk, user=request.user)
-    item.status = "DONATED"
-    item.save()
-    messages.success(request, f"Marked {item.name} as donated.")
+
+    if item.status in ["FRESH", "EXPIRING", "DONATION_CANCELLED"]:
+        item.status = "DONATED"
+        item.save()
+        messages.success(request, f"{item.name} marked for donation.")
+    else:
+        messages.warning(request, "This item cannot be donated.")
+
     return redirect("dashboard")
+
+
+@login_required
+def cancel_donation(request, pk):
+    """
+    Cancel an already donated food item.
+    """
+    item = get_object_or_404(FoodItem, pk=pk, user=request.user)
+
+    if item.status == "DONATED":
+        item.status = "DONATION_CANCELLED"
+        item.save()
+        messages.info(request, f"Donation cancelled for {item.name}.")
+    else:
+        messages.warning(request, "This item is not marked for donation.")
+
+    return redirect("dashboard")
+
 
 @login_required
 def mark_as_consumed(request, pk):
@@ -104,28 +134,46 @@ def mark_as_consumed(request, pk):
     Mark a food item as consumed.
     """
     item = get_object_or_404(FoodItem, pk=pk, user=request.user)
-    item.status = "CONSUMED"
-    item.save()
-    messages.success(request, f"Marked {item.name} as consumed.")
+
+    if item.status != "CONSUMED":
+        item.status = "CONSUMED"
+        item.save()
+        messages.success(request, f"{item.name} marked as consumed.")
+
     return redirect("dashboard")
+
 
 def signup(request):
     """
-    Allow a new user to register.
-    After successful signup, the user is logged in and redirected to the dashboard.
+    User registration.
     """
-    # If already logged in, no need to sign up again
     if request.user.is_authenticated:
         return redirect("dashboard")
 
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()          # creates the user
-            login(request, user)        # log the user in immediately
+            user = form.save()
+            login(request, user)
             messages.success(request, "Account created successfully. Welcome!")
             return redirect("dashboard")
     else:
         form = SignUpForm()
 
     return render(request, "registration/signup.html", {"form": form})
+
+@login_required
+def donation_history(request):
+    """
+    Shows all donated and donation-cancelled items for the user.
+    """
+    donated_items = FoodItem.objects.filter(
+        user=request.user,
+        status__in=["DONATED", "DONATION_CANCELLED"]
+    ).order_by("-added_date")
+
+    context = {
+        "donated_items": donated_items
+    }
+
+    return render(request, "donation_history.html", context)
