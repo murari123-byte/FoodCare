@@ -16,21 +16,24 @@ def dashboard(request):
     """
     today = date.today()
 
+    # AUTO-EXPIRE LOGIC (Python advancement)
+    FoodItem.objects.filter(
+        user=request.user,
+        expiry_date__lt=today
+    ).exclude(status="EXPIRED").update(status="EXPIRED")
+
     # All items for the logged-in user
     items = FoodItem.objects.filter(user=request.user).order_by("expiry_date")
 
-    # Items expiring in next 3 days (excluding donated/consumed)
+    # Items expiring in next 3 days
     expiring_soon = items.filter(
-        expiry_date__lte=today + timedelta(days=3),
         expiry_date__gte=today,
+        expiry_date__lte=today + timedelta(days=3),
         status__in=["FRESH", "EXPIRING", "DONATION_CANCELLED"],
     )
 
-    # Already expired items
-    expired = items.filter(
-        expiry_date__lt=today,
-        status__in=["FRESH", "EXPIRING", "DONATION_CANCELLED"],
-    )
+    # Already expired items (status-based ✔)
+    expired = items.filter(status="EXPIRED")
 
     context = {
         "items": items,
